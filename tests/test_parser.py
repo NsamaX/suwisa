@@ -107,3 +107,8 @@ def test_thai_digits_and_unknown_currency():
 def test_reference_label_with_dropped_tone_marks():
     receipt = parse_receipt(doc("Bangkok Bank\nเลขทีอ้างอิง\n99999999999999999999999"))
     assert receipt.reference == "99999999999999999999999"
+
+
+def test_bank_brand_does_not_override_explicit_foreign_currency():
+    receipt = parse_receipt(doc("Bangkok Bank\nจำนวนเงิน\n88.50 USD"))
+    assert receipt.currency is None

@@ -152,6 +152,9 @@ def parse_receipt(document: OcrDocument) -> Receipt:
         receipt.amount, ambiguous = labeled_amount(total_lines, ("total",))
     receipt.fee, _ = labeled_amount(lines, ("ค่าธรรมเนียม", "fee"))
     receipt.currency = "THB" if bank_slip or re.search(r"\bTHB\b|บาท|฿", text, re.I) else None
+    # Bank branding alone must not turn an explicitly foreign-currency slip into THB.
+    if re.search(r"\b(?:USD|EUR|GBP|JPY|CNY|SGD|AUD|HKD)\b|[$€£¥]", text, re.I):
+        receipt.currency = None
     receipt.occurred_at = parse_date(document.date_text) or parse_date(text)
     receipt.recipient = recipient_from(lines) if bank_slip else None
     if bank_slip and "servicecode:tmntopup" in key:
