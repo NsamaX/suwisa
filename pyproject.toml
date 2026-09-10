@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "suwisa"
+version = "0.1.0"
+description = "A modular Discord personal assistant with local Thai receipt OCR"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "discord.py>=2.5,<3",
+  "Pillow>=12,<13",
+  "pytesseract==0.3.13",
+  "python-dotenv>=1,<2",
+  "tzdata>=2025.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=9,<10", "pytest-asyncio>=1,<2", "ruff>=0.15,<1"]
+
+[project.scripts]
+suwisa = "suwisa.__main__:main"
+suwisa-receipt = "suwisa.cli:main"
+suwisa-backup = "suwisa.cli:backup_main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = ["integration: requires local Tesseract and Thai language data"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]

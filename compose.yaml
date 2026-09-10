@@ -1,0 +1,36 @@
+services:
+  suwisa:
+    build: .
+    image: suwisa:0.1.0
+    restart: unless-stopped
+    init: true
+    env_file: .env
+    environment:
+      DATABASE_PATH: /app/data/suwisa.sqlite3
+      TESSERACT_CMD: /usr/bin/tesseract
+      TESSDATA_DIR: /usr/share/tesseract-ocr/5/tessdata
+      OMP_THREAD_LIMIT: "1"
+      TZ: Asia/Bangkok
+    volumes:
+      - ./data:/app/data
+      - ${BACKUP_DIR:-./backups}:/app/backups
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 768m
+    cpus: 1.5
+    pids_limit: 100
+    stop_grace_period: 30s
+    healthcheck:
+      test: [CMD, python, -m, suwisa.healthcheck]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"

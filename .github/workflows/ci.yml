@@ -1,0 +1,36 @@
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: 'requirements*.lock'
+      - name: Install local OCR
+        run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-tha tesseract-ocr-eng fonts-dejavu-core
+      - name: Install project
+        run: |
+          pip install -r requirements-dev.lock
+          pip install --no-deps -e .
+      - name: Lint and test
+        env:
+          RUN_OCR_TESTS: '1'
+        run: |
+          ruff check .
+          ruff format --check .
+          pytest -q
+      - name: Check Compose and build image
+        run: |
+          cp .env.example .env
+          docker compose config --quiet
+          docker build -t suwisa:ci .
+          docker run --rm --entrypoint tesseract suwisa:ci --list-langs
+          docker run --rm --entrypoint python suwisa:ci -c "from suwisa.infrastructure.ocr.tesseract import TesseractEngine; TesseractEngine(); import suwisa.bot"
